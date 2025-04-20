@@ -8,6 +8,8 @@ interface ElectronBrowserAPI {
   back: (id: string) => Promise<void>;
   forward: (id: string) => Promise<void>;
   reload: (id: string) => Promise<void>;
+  toggleAdblock?: () => Promise<boolean>;
+  getAdblockState?: () => Promise<boolean>;
 }
 declare global {
   interface Window {
@@ -31,11 +33,40 @@ interface Tab {
   title: string;
 }
 
+// HACK: Force scrollbars and overflow indicators to be hidden globally
+if (typeof window !== 'undefined') {
+  const style = document.createElement('style');
+  style.innerHTML = `
+    *::-webkit-scrollbar { display: none !important; }
+    ::-webkit-scrollbar-thumb { display: none !important; }
+    ::-webkit-scrollbar-corner { display: none !important; }
+    body, html, .chrome-tabbar, .browser-app-root { overflow: hidden !important; }
+  `;
+  document.head.appendChild(style);
+}
+
 export const BrowserApp: React.FC = () => {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [active, setActive] = useState<string | null>(null);
   const [address, setAddress] = useState(DEFAULT_HOME);
   const [mediaState, setMediaState] = useState<{ playing: boolean, volume: number }>({ playing: false, volume: 1 });
+
+  // Adblock state
+  const [adblockEnabled, setAdblockEnabled] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (window.electronBrowser && window.electronBrowser.getAdblockState) {
+      window.electronBrowser.getAdblockState().then(setAdblockEnabled);
+    }
+  }, []);
+
+  const handleToggleAdblock = async () => {
+    if (window.electronBrowser && window.electronBrowser.toggleAdblock) {
+      const state = await window.electronBrowser.toggleAdblock();
+      setAdblockEnabled(state);
+    }
+  };
+
 
   // Listen for media messages from webview
   useEffect(() => {
@@ -150,6 +181,7 @@ export const BrowserApp: React.FC = () => {
   return (
     <div className="browser-app-root" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Chrome-like Tab Bar */}
+      {/* Tab bar: No overflow/arrow indicators or SVGs present. If you see white arrows, check for OS/Electron overlays or browser CSS. */}
       <div className="chrome-tabbar">
         {tabs.map(tab => (
           <div
@@ -219,6 +251,23 @@ export const BrowserApp: React.FC = () => {
           />
         </form>
         <div className="chrome-toolbar-right">
+          {/* Adblock Toggle Button */}
+          {/* Adblock toggle is always visible and now uses an icon for clarity */}
+          {/* Brave-style Adblock toggle */}
+          <div className="adblock-toggle" title={adblockEnabled ? 'Adblock ON' : 'Adblock OFF'}>
+            <button
+              className={`adblock-toggle-btn${adblockEnabled ? ' on' : ' off'}`}
+              onClick={handleToggleAdblock}
+              aria-pressed={adblockEnabled}
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" style={{ marginRight: 4 }}>
+                <rect x="3" y="3" width="14" height="14" rx="3" fill={adblockEnabled ? '#4caf50' : '#f44336'} stroke="#222736" strokeWidth="2"/>
+                <path d="M6 10.5L9 13.5L14 7.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="adblock-toggle-label" style={{ fontWeight: 500, fontSize: '0.95em' }}>{adblockEnabled ? 'On' : 'Off'}</span>
+              <span className={`adblock-switch${adblockEnabled ? ' checked' : ''}`}></span>
+            </button>
+          </div>
           {/* Placeholder for future: profile, menu, extensions */}
         </div>
       </div>

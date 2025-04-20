@@ -8,6 +8,7 @@
     "build": "cd web && npm run build"
   },
   "dependencies": {
+    "adblock-rs": "^0.9.7",
     "electron": "^29.0.0"
   }
 }

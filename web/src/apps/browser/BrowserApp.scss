@@ -35,6 +35,13 @@
 
 // Chrome-like Tab Bar
 .chrome-tabbar {
+  /* Remove any arrow/scroll/overflow indicators */
+  &::before,
+  &::after {
+    display: none !important;
+    content: none !important;
+  }
+
   display: flex;
   align-items: flex-end;
   background: rgba(34, 39, 54, 0.96); /* dark glassy */
@@ -203,7 +210,101 @@
 .chrome-toolbar-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+}
+
+.chrome-toolbar-right .chrome-nav-btn {
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  border: none;
+  outline: none;
+  transition: background 0.12s, color 0.12s;
+  min-width: 100px;
+  padding: 7px 16px;
+  margin-left: 0;
+  margin-right: 0;
+  background: #4caf50;
+  color: #fff;
+  cursor: pointer;
+}
+.chrome-toolbar-right .chrome-nav-btn.adblock-off {
+  background: #f44336;
+  color: #fff;
+}
+
+// Brave-style Adblock toggle
+.adblock-toggle {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+.adblock-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(44, 50, 68, 0.92);
+  border: 1.5px solid #232a39;
+  border-radius: 999px;
+  padding: 3px 12px 3px 6px;
+  cursor: pointer;
+  transition: background 0.15s, border 0.15s;
+  min-width: 48px;
+  position: relative;
+  outline: none;
+}
+.adblock-toggle-btn.on {
+  background: #4caf50;
+  border-color: #4caf50;
+}
+.adblock-toggle-btn.off {
+  background: #f44336;
+  border-color: #f44336;
+}
+.adblock-toggle-label {
+  color: #fff;
+  margin-right: 6px;
+}
+.adblock-switch {
+  width: 22px;
+  height: 12px;
+  border-radius: 6px;
+  background: #bbb;
+  margin-left: 6px;
+  position: relative;
+  transition: background 0.15s;
+  display: inline-block;
+}
+.adblock-switch.checked {
+  background: #fff;
+}
+.adblock-switch::before {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4caf50;
+  position: absolute;
+  left: 2px;
+  top: 1px;
+  transition: left 0.15s, background 0.15s;
+}
+.adblock-toggle-btn.off .adblock-switch::before {
+  background: #f44336;
+  left: 10px;
+}
+
+// Hide scrollbars and overflow indicators globally
+html, body, #root, .browser-app-root, .chrome-tabbar {
+  overflow: hidden !important;
+}
+*::-webkit-scrollbar, *::-webkit-scrollbar-thumb, *::-webkit-scrollbar-corner {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
 }
 
 // Legacy Tab bar

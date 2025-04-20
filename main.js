@@ -1,5 +1,83 @@
-const { app, BrowserWindow, BrowserView, ipcMain } = require('electron');
+const { app, BrowserWindow, BrowserView, ipcMain, session } = require('electron');
 const path = require('path');
+const fs = require('fs');
+let adblockEnabled = true;
+let adblockEngine = null;
+
+// Adblock initialization
+function initAdblock() {
+  try {
+    const adblockRust = require('adblock-rs');
+    const filterSet = new adblockRust.FilterSet(false);
+    const easylistPath = path.join(__dirname, 'data', 'easylist.txt');
+    const easylistLines = fs.readFileSync(easylistPath, 'utf-8')
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line =>
+        line &&
+        !line.startsWith('!') &&
+        !line.startsWith('[') &&
+        /[\/\*\.\$\^\|]/.test(line)
+      );
+    for (const rule of easylistLines) {
+      try {
+        filterSet.addFilters([rule]);
+      } catch (e) {
+        // Skip invalid rule
+      }
+    }
+    adblockEngine = new adblockRust.Engine(filterSet, true);
+  } catch (e) {
+    console.error('Failed to initialize adblock:', e);
+    adblockEngine = null;
+  }
+}
+
+function isValidUrl(url) {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function setupAdblockWebRequest() {
+  // Remove any previous listeners
+  try { session.defaultSession.webRequest.onBeforeRequest(null); } catch {}
+  session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
+    if (!adblockEnabled || !adblockEngine) return callback({});
+    const { url, resourceType, referrer } = details;
+    const type = resourceType || 'other';
+
+    // Validate URL and referrer
+    if (!isValidUrl(url)) return callback({});
+    const safeReferrer = isValidUrl(referrer) ? referrer : '';
+
+    let blocked = false;
+    try {
+      blocked = adblockEngine.check(url, safeReferrer, type);
+    } catch (e) {
+      console.warn('adblockEngine.check failed for', url, safeReferrer, type, e);
+      blocked = false;
+    }
+    if (blocked) return callback({ cancel: true });
+    return callback({});
+  });
+}
+
+
+initAdblock();
+app.whenReady().then(() => {
+  setupAdblockWebRequest();
+});
+
+// IPC for adblock toggle
+ipcMain.handle('adblock-toggle', () => {
+  adblockEnabled = !adblockEnabled;
+  return adblockEnabled;
+});
+ipcMain.handle('adblock-get-state', () => adblockEnabled);
 
 let mainWindow;
 let tabs = []; // { id, view, url }

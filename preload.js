@@ -8,4 +8,6 @@ contextBridge.exposeInMainWorld('electronBrowser', {
   back: (id) => ipcRenderer.invoke('browser-back', id),
   forward: (id) => ipcRenderer.invoke('browser-forward', id),
   reload: (id) => ipcRenderer.invoke('browser-reload', id),
+  toggleAdblock: () => ipcRenderer.invoke('adblock-toggle'),
+  getAdblockState: () => ipcRenderer.invoke('adblock-get-state'),
 });
