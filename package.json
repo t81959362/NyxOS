@@ -1,0 +1,13 @@
+{
+  "name": "nyxos-electron",
+  "version": "1.0.0",
+  "main": "main.js",
+  "description": "Electron desktop version of NyxOS (React/TypeScript)",
+  "scripts": {
+    "start": "electron .",
+    "build": "cd web && npm run build"
+  },
+  "dependencies": {
+    "electron": "^29.0.0"
+  }
+}
