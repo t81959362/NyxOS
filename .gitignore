@@ -1,0 +1,16 @@
+# Ignore node_modules and Electron binaries
+node_modules/
+*.log
+.DS_Store
+/dist/
+/web/dist/
+/web/out/
+/web/node_modules/
+/web/src/assets/*.exe
+/web/src/assets/*.dll
+/web/src/assets/*.bin
+/web/src/assets/icons/*.exe
+/web/src/assets/icons/*.dll
+/web/src/assets/icons/*.bin
+/web/src/assets/icons/*.zip
+/web/src/assets/icons/*.tar.gz
